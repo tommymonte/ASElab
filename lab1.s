@@ -5,7 +5,6 @@ v3: .space 10               # Terzo vettore (per i match)
 flag1: .byte 1
 flag2: .byte 0
 flag3: .byte 0
-a
     .text                   # Sezione codice
 main: 
     daddi R1,R0,0
