@@ -13,7 +13,7 @@ main:
     daddi R8,R0,0   # indice v3
     daddi R4, R1, 10    # Lunghezza dei vettori (10 elementi)
 
-    daddi R10, R0, 1
+    daddi R10, R0, 1 # uso un reg settato a 1 per andare a inserire il flag a 1
 
     # sb R10, flag1(R0) # significa salvo in flag1 il valore di R10, in questo caso 1
     # --> tra parentesi l'indice, in questo caso flag è un byte quindi indice R0 vuol dire indice 0
@@ -22,10 +22,10 @@ loop:
     lb R5,v1(R2)    # salvo v1 in R5, uso lb per salvare il singolo byte
     lb R6,v2(R3)    # salvo v2 in R6
 
-    beq R2, R4, end_loop    # Se l'indice è uguale a 10, termina il ciclo
+    beq R2, R4, check_flags    # Se l'indice è uguale a 10, termina il ciclo
 
     beq R5, R6, match      # Se v1[i] == v2[i], salta a match
-    beq R3, R4, restart_loop
+    beq R3, R4, restart_loop # devo resettare l'indice di v2 se arriva a 10
 
     j no_match             # Altrimenti, salta a no_match
 
@@ -50,11 +50,33 @@ restart_loop:
     j loop
 
 check_flags:
-    daddi R2,R0,0   
-    daddi R3,R0,0   
-    bgt 
+    lb R1, flag1(R0)                # Carica il valore di flag1
+    bnez R1, END                # Se flag1 != 0 (v3 è vuoto), salta a END
+    daddi R2,R0,0   # indice per il flag2
+    daddi R3,R0,0  # indice per il flag3
+    daddi R4, R0, 0
 
-    
+loop_flag2 :
+    beq R2, R8, set_flag2 # se siamo arrivati all'ultimo elemento jumpo
+    lb R5, v3(R2)
+    daddi R2, R2, 1
+    lb R6, v3(R2) 
+    slt R4, R5, R6 # imposta R4 a 1 se i valori dei due reg confrontati sono in ordine crescente
+    bne R4, R0, loop_flag2
+
+set_flag2 :
+    beq R4, R0, loop_flag3 # se l'ordine non è crescente jumpo
+    sb R10, flag2(R0) # imposto flag2 a 1
+
+loop_flag3 :
+    beq R3, R8, set_flag2 # se siamo arrivati all'ultimo elemento jumpo
+    lb R5, v3(R3)
+    daddi R3, R3, 1
+    lb R6, v3(R3) 
+    slt R4, R5, R6 # imposta R4 a 1 se i valori dei due reg confrontati sono in ordine crescente
+    bne R4, R0, loop_flag2
+set_flag3 :
+    beq R4, R0, end_loop
+    sb R10, flag3(R0) # imposto flag2 a 1
 end_loop:
-    j check_flags
     HALT
