@@ -50,33 +50,32 @@ restart_loop:
     j loop
 
 check_flags:
-    lb R1, flag1(R0)                # Carica il valore di flag1
-    bnez R1, END                # Se flag1 != 0 (v3 è vuoto), salta a END
-    daddi R2,R0,0   # indice per il flag2
-    daddi R3,R0,0  # indice per il flag3
-    daddi R4, R0, 0
+    lb R11, flag1(R0)                # Carica il valore di flag1
+    bnez R11, end_loop                # Se flag1 != 0 (v3 è vuoto), salta a END
+    dadd R2,R0, R0   # indice per il flag2
+    dadd R3,R0,R0  # indice per il flag3
+    dadd R4, R0, R0
 
-loop_flag2 :
-    beq R2, R8, set_flag2 # se siamo arrivati all'ultimo elemento jumpo
-    lb R5, v3(R2)
-    daddi R2, R2, 1
-    lb R6, v3(R2) 
-    slt R4, R5, R6 # imposta R4 a 1 se i valori dei due reg confrontati sono in ordine crescente
-    bne R4, R0, loop_flag2
+LOOPFLAG2:
+    beq R2, R8, LOOPFLAG3     # Se abbiamo finito il vettore, controlla flag3
+    lb R5, v3(R2)              # Carica v3[R2]
+    daddi R2, R2, 1            # Incrementa R2
+    lb R6, v3(R2)              # Carica v3[R2 + 1]
+    slt R4, R5, R6             # Verifica se v3[R2] < v3[R2 + 1]
+    bne R4, R0, LOOPFLAG3     # Se non è vero, passa al flag3
+    sb R4, flag2(R0)          # Imposta flag2 a 1
+    j LOOPFLAG2              
 
-set_flag2 :
-    beq R4, R0, loop_flag3 # se l'ordine non è crescente jumpo
-    sb R10, flag2(R0) # imposto flag2 a 1
+LOOPFLAG3:
+    beq R3, R8, end_loop      # Se abbiamo finito il vettore, esci
+    lb R5, v3(R3)             # Carica v3[R3]
+    daddi R3, R3, 1           # Incrementa R3
+    lb R6, v3(R3)             # Carica v3[R3 + 1]
+    slt R4, R6, R5            # Verifica se v3[R3] < v3[R3 + 1]
+    bne R4, R0, end_loop      # Se non è vero, fine
+    sb R4, flag3(R0)         # Imposta flag3 a 1
+    j LOOPFLAG3
 
-loop_flag3 :
-    beq R3, R8, set_flag2 # se siamo arrivati all'ultimo elemento jumpo
-    lb R5, v3(R3)
-    daddi R3, R3, 1
-    lb R6, v3(R3) 
-    slt R4, R5, R6 # imposta R4 a 1 se i valori dei due reg confrontati sono in ordine crescente
-    bne R4, R0, loop_flag2
-set_flag3 :
-    beq R4, R0, end_loop
-    sb R10, flag3(R0) # imposto flag2 a 1
 end_loop:
     HALT
+
