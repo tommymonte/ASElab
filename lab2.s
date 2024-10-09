@@ -21,9 +21,17 @@ v6:     .space 256
 
 .text
 main: 
-    daddi R1, R0, 31 # index for
+    daddi R1, R0, 31 # index for loop
     daddi R2, R0, 0 # index for the vectors
 
+loop: 
+    lb f1, v1(r2)
+    lb f2, v2(r2)
+    lb f3, v3(r2)
+
+    j FORLOOP
+
+FORLOOP
 
 
 
