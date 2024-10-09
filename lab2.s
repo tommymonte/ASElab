@@ -25,13 +25,34 @@ main:
     daddi R2, R0, 0 # index for the vectors
 
 loop: 
-    lb f1, v1(r2)
-    lb f2, v2(r2)
-    lb f3, v3(r2)
+    bne R1 R0 END
+    l.d f1, v1(r2)
+    l.d f2, v2(r2)
+    l.d f3, v3(r2)
 
     j FORLOOP
 
-FORLOOP
+FORLOOP:
+    mul.d f4, f1, f1  # v1[i]*v1[i], produce f4
 
+    sub.d f8, f5, f1  # v4[i]-v1[i], può essere eseguita perché dipende solo da f5
 
+    sub.d f5, f4, f2  # v4[i] = f4 - f2, produce f5
 
+    div.d f6, f5, f3  # f6 = f5 / v3[i], dipende da f5
+
+    sub.d f7, f6, f2  # v5[i] = f6 - f2, dipende da f6
+
+    mul.d f9, f8, f7  # f9 = f8 * f7, dipende da f8 e f7
+
+STORE:
+    s.d f5 v4[R2]
+    s.d f7 v5[R2]
+    s.d f9 v6[R2]
+
+    daddi R2, R2, 1
+    daddi R1, R1, -1
+    j loop
+
+END:
+    HALT
