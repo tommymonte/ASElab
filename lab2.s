@@ -32,12 +32,12 @@ loop:
     j FORLOOP
 
 FORLOOP:
-    mul.d f4 f1 f1 # store the v1[i]*v1[i]
-    sub.d f5 f4 f2 # v4[i]
-    div.d f6 f5 f3 # div between v4[i]/v3[i]
-    sub.d f7 f6 f2 # store in f7 v5[i]
-    sub.d f8 f5 f1 # v4[i]-v1[i]
-    mul.d f9 f8 f7 # salvo v6[i]
+    mul.d f4,f1, f1 # store the v1[i]*v1[i]
+    sub.d f5, f4, f2 # v4[i]
+    div.d f6, f5, f3 # div between v4[i]/v3[i]
+    sub.d f7, f6, f2 # store in f7 v5[i]
+    sub.d f8, f5, f1 # v4[i]-v1[i]
+    mul.d f9, f8, f7 # salvo v6[i]
 
 STORE:
     s.d f5, v4[R1]
