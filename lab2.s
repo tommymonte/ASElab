@@ -25,24 +25,20 @@ main:
 
 loop: 
     bne R1, R0, END
-    l.d f1, v1(R!)
+    l.d f1, v1(R1)
     l.d f2, v2(R1)
     l.d f3, v3(R1)
 
     j FORLOOP
 
 FORLOOP:
-    mul.d f4, f1, f1  # v1[i]*v1[i], produce f4
-
-    sub.d f8, f5, f1  # v4[i]-v1[i], può essere eseguita perché dipende solo da f5
-
-    sub.d f5, f4, f2  # v4[i] = f4 - f2, produce f5
-
-    div.d f6, f5, f3  # f6 = f5 / v3[i], dipende da f5
-
-    sub.d f7, f6, f2  # v5[i] = f6 - f2, dipende da f6
-
-    mul.d f9, f8, f7  # f9 = f8 * f7, dipende da f8 e f7
+FORLOOP:
+    mul.d f4 f1 f1 # store the v1[i]*v1[i]
+    sub.d f5 f4 f2 # store in f5 the sub aka v4[i]
+    div.d f6 f5 f3 # div between v4[i]/v3[i]
+    sub.d f7 f6 f2 # store in f7 v5[i]
+    sub.d f8 f5 f1 # v4[i]-v1[i]
+    mul.d f9 f8 f7 
 
 STORE:
     s.d f5, v4[R1]
