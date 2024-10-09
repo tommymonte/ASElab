@@ -25,7 +25,7 @@ main:
     daddi R2, R0, 0 # index for the vectors
 
 loop: 
-    bne R1 R0 END
+    bne R1, R0, END
     l.d f1, v1(r2)
     l.d f2, v2(r2)
     l.d f3, v3(r2)
@@ -46,9 +46,9 @@ FORLOOP:
     mul.d f9, f8, f7  # f9 = f8 * f7, dipende da f8 e f7
 
 STORE:
-    s.d f5 v4[R2]
-    s.d f7 v5[R2]
-    s.d f9 v6[R2]
+    s.d f5, v4[R2]
+    s.d f7, v5[R2]
+    s.d f9, v6[R2]
 
     daddi R2, R2, 1
     daddi R1, R1, -1
