@@ -21,30 +21,28 @@ v6:     .space 256
 
 .text
 main: 
-    daddi R1, R0, 31 # index for loop
+    daddi R1, R0, 248 # 1 index for loop
+    daddi R2, R0, -8 # 1
 
 loop: 
-    bne R1, R0, END
+    beq R1, R2, END
     l.d f1, v1(R1)
     l.d f2, v2(R1)
+    
+    mul.d f4, f1, f1      # v1[i]*v1[i]
+    sub.d f5, f4, f2      # v4[i] = f4 - f2, produce f5
+    s.d f5, v4(R1)
+
+    sub.d f8, f5, f1      # v4[i]-v1[i], può essere eseguita perché dipende solo da f5
     l.d f3, v3(R1)
+    div.d f6, f5, f3      # f6 = f5 / v3[i], dipende da f5
+    sub.d f7, f6, f2      # v5[i] = f6 - f2, dipende da f6
+    s.d f7, v5(R1)
 
-    j FORLOOP
+    mul.d f9, f8, f7      # f9 = f8 * f7, dipende da f8 e f7    
+    s.d f9, v6(R1)
 
-FORLOOP:
-    mul.d f4,f1, f1 # store the v1[i]*v1[i]
-    sub.d f5, f4, f2 # v4[i]
-    div.d f6, f5, f3 # div between v4[i]/v3[i]
-    sub.d f7, f6, f2 # store in f7 v5[i]
-    sub.d f8, f5, f1 # v4[i]-v1[i]
-    mul.d f9, f8, f7 # salvo v6[i]
-
-STORE:
-    s.d f5, v4[R1]
-    s.d f7, v5[R1]
-    s.d f9, v6[R1]
-
-    daddi R1, R1, -1
+    daddi R1, R1, -8
     j loop
 
 END:
