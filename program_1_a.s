@@ -37,11 +37,12 @@ loop:
     beq R1, R2, END         # termina se R1 == R2
     
     ddivu R5, R3, R4        # R5 = R3 / R4
-    dmulu R6, R5, R4        # R6 = R5 * R4
-
     l.d f1, v1(R1)          # carica v1
     l.d f2, v2(R1)          # carica v2
     l.d f6, v3(R1)          # carica v3
+    dmulu R6, R5, R4        # R6 = R5 * R4
+
+
     # Condizione per multiplo di 3
     bne R6, R3, ELSECOND    # Salta a ELSECOND se non è multiplo di 3
 
@@ -73,21 +74,20 @@ FINALCALC:
     daddi R1, R1, -8        # decrementa R1 di 8
     daddi R3, R3, -1        # decrementa R3 di 1
 
-    sub.d f5, f5, f2        # f5 = f5 - f2
+    sub.d f5, f5, f2         # f5 = f5 - f2 --> v4[i] = av1[i] - v2[i] 
+    div.d f7, f5, f6         # f7 = f5 / f6
 
-    div.d f7, f5, f6        # f7 = f5 / f6, non posso spostarla, dipende d f5
+    s.d f5, v4(R1)           # salvo in v4
 
-    s.d f5, v4(R1)          # salvo in v4
+    sub.d f7, f7, f8         # f7 = f7 - f8
+    sub.d f9, f5, f1         # f9 = f5 - f1
 
-    sub.d f7, f7, f8        # f7 = f7 - f8
-    sub.d f9, f5, f1        # f9 = f5 - f1, sposto la sub
+    s.d f8, v5(R1)           # salvo in v5
 
-    s.d f8, v5(R1)          # salvo in v5
+    mul.d f9, f9, f8         # f9 = f9 * f8
+    s.d f9, v6(R1)           # salvo in v6
 
-    mul.d f9, f9, f8        # f9 = f9 * f8
-    s.d f8, v6(R1)          # salvo in v6
-
-    j loop                  # ripeti ciclo
+    j loop                   # ripeti ciclo
 
 END:
     HALT                    # termina

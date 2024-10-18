@@ -88,7 +88,5 @@ FINALCALC:
     s.d f9, v6(R1)           # salvo in v6
 
     j loop                   # ripeti ciclo
-    nop                      # Inserito un 'nop' nello slot di ritardo del jump
-
 END:
     HALT                     # termina
