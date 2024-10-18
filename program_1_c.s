@@ -143,4 +143,5 @@ LOOP3:
     s.d f9, v6(R9)           # salvo in v6
 
 END:
+    nop
     HALT                    # termina
