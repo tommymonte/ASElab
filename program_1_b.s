@@ -25,16 +25,6 @@ m:      .word   1
 
 .text
 main: 
-    daddi R1, R0, 248        # 1 index for loop
-    daddi R2, R0, -8         # 1
-    daddi R3, R0, 31
-    daddi R4, R0, 3
-
-    ld R7, m(R0)             # load m
-    l.d f8, b(R0)            # load b
-
-.text
-main: 
     daddi R1, R0, 248       # 1 index for loop
     daddi R2, R0, -8        # 1
     daddi R3, R0, 31
@@ -103,7 +93,7 @@ FINALCALC:
     
 
     j loop                   # ripeti ciclo
-    
+
     # delay slot
     s.d f9, v6(R1)           # salvo in v6
 END:
