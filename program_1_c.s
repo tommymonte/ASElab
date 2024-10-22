@@ -68,7 +68,7 @@ LOOP1:
     sub.d f7, f7, f8         # f7 = f7 - f8
     sub.d f9, f5, f1         # f9 = f5 - f1
 
-    s.d f8, v5(R1)           # salvo in v5
+    s.d f7, v5(R1)           # salvo in v5
 
     mul.d f9, f9, f8         # f9 = f9 * f8
     # delay slot
@@ -103,7 +103,7 @@ LOOP2:
     sub.d f7, f7, f8         # f7 = f7 - f8
     sub.d f9, f5, f1         # f9 = f5 - f1
 
-    s.d f8, v5(R8)           # salvo in v5
+    s.d f7, v5(R8)           # salvo in v5
 
     mul.d f9, f9, f8         # f9 = f9 * f8
     s.d f9, v6(R8)           # salvo in v6
@@ -134,7 +134,7 @@ LOOP3:
     sub.d f7, f7, f8         # f7 = f7 - f8
     sub.d f9, f5, f1         # f9 = f5 - f1
 
-    s.d f8, v5(R9)           # salvo in v5
+    s.d f7, v5(R9)           # salvo in v5
 
     mul.d f9, f9, f8         # f9 = f9 * f8
     

@@ -77,7 +77,7 @@ SECONDLOOP:
 
     div.d f7, f5, f6
     sub.d f7, f7, f8
-    s.d f8, v5(R1)
+    s.d f7, v5(R1)
 
     sub.d f9, f5, f1
     mul.d f9, f9, f8
