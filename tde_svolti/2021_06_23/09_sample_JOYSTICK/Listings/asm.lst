@@ -1,0 +1,133 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             asm, CODE, READONLY
+    2 00000000                 EXPORT           sopra_la_media
+    3 00000000         
+    4 00000000         sopra_la_media
+    5 00000000 B5F0            PUSH             {R4-R7, LR} ; Salva i registri 
+                                                            usati
+    6 00000002 4604            MOV              R4, R0      ; R4 = indirizzo de
+                                                            ll'array (VETT)
+    7 00000004 460D            MOV              R5, R1      ; R5 = numero di el
+                                                            ementi (n)
+    8 00000006 F04F 0600       MOV              R6, #0      ; Somma = 0 (R6)
+    9 0000000A F04F 0700       MOV              R7, #0      ; Conteggio sopra m
+                                                            edia = 0 (R7)
+   10 0000000E         
+   11 0000000E         ; Calcolo della somma
+   12 0000000E F814 3B01 
+                       loop_sum
+                               LDRB             R3, [R4], #1 ; Carica il prossi
+                                                            mo elemento (8-bit)
+                                                             e incrementa R4
+   13 00000012 441E            ADD              R6, R6, R3  ; Aggiunge il valor
+                                                            e alla somma
+   14 00000014 1E6D            SUBS             R5, R5, #1  ; Decrementa il con
+                                                            teggio
+   15 00000016 D1FA            BNE              loop_sum    ; Continua finché c
+                                                            i sono elementi
+   16 00000018         
+   17 00000018         ; Calcolo della media
+   18 00000018 460D            MOV              R5, R1      ; Ripristina il num
+                                                            ero di elementi (n)
+                                                            
+   19 0000001A 4630            MOV              R0, R6      ; R0 = somma totale
+                                                            
+   20 0000001C FBB0 F0F5       UDIV             R0, R0, R5  ; R0 = somma / n (m
+                                                            edia)
+   21 00000020         
+   22 00000020         ; Conta i valori sopra la media
+   23 00000020 460C            MOV              R4, R1      ; R4 = indirizzo de
+                                                            ll'array (reset)
+   24 00000022 460D            MOV              R5, R1      ; R5 = numero di el
+                                                            ementi (n)
+   25 00000024 4606            MOV              R6, R0      ; R6 = media
+   26 00000026 F814 3B01 
+                       loop_count
+                               LDRB             R3, [R4], #1 ; Carica il prossi
+                                                            mo elemento
+   27 0000002A 42B3            CMP              R3, R6      ; Confronta con la 
+                                                            media
+   28 0000002C D901            BLS              skip_count  ; Salta se <= media
+                                                            
+   29 0000002E F107 0701       ADD              R7, R7, #1  ; Incrementa il con
+                                                            teggio sopra media
+   30 00000032 1E6D    skip_count
+                               SUBS             R5, R5, #1  ; Decrementa il con
+                                                            teggio
+   31 00000034 D1F7            BNE              loop_count  ; Continua finché c
+                                                            i sono elementi
+   32 00000036         
+   33 00000036         ; Ritorno del risultato
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   34 00000036 4638            MOV              R0, R7      ; R0 = risultato (c
+                                                            onteggio sopra medi
+                                                            a)
+   35 00000038 BDF0            POP              {R4-R7, PC} ; Ripristina i regi
+                                                            stri e ritorna
+   36 0000003A         
+   37 0000003A                 END
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
+nd=.\objects\asm.d -o.\objects\asm.o -I.\Source\button_EXINT -I.\Source\CMSIS_c
+ore -I.\Source\joystick -I.\Source\led -I.\Source\RIT -I.\Source\timer -I.\Sour
+ce -I.\RTE\_SW_Debug -IC:\Users\HP\AppData\Local\Arm\Packs\ARM\CMSIS\6.1.0\CMSI
+S\Core\Include -IC:\Users\HP\AppData\Local\Arm\Packs\Keil\LPC1700_DFP\2.7.2\Dev
+ice\Include --predefine="__UVISION_VERSION SETA 541" --predefine="LPC175x_6x SE
+TA 1" --predefine="_RTE_ SETA 1" --list=.\listings\asm.lst asm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+asm 00000000
+
+Symbol: asm
+   Definitions
+      At line 1 in file asm.s
+   Uses
+      None
+Comment: asm unused
+loop_count 00000026
+
+Symbol: loop_count
+   Definitions
+      At line 26 in file asm.s
+   Uses
+      At line 31 in file asm.s
+Comment: loop_count used once
+loop_sum 0000000E
+
+Symbol: loop_sum
+   Definitions
+      At line 12 in file asm.s
+   Uses
+      At line 15 in file asm.s
+Comment: loop_sum used once
+skip_count 00000032
+
+Symbol: skip_count
+   Definitions
+      At line 30 in file asm.s
+   Uses
+      At line 28 in file asm.s
+Comment: skip_count used once
+sopra_la_media 00000000
+
+Symbol: sopra_la_media
+   Definitions
+      At line 4 in file asm.s
+   Uses
+      At line 2 in file asm.s
+Comment: sopra_la_media used once
+5 symbols
+338 symbols in table
