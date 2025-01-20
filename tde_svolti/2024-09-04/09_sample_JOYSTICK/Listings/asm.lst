@@ -7,91 +7,89 @@ ARM Macro Assembler    Page 1
     1 00000000                 AREA             asm, CODE, READONLY
     2 00000000                 EXPORT           avg_vett
     3 00000000         
-    4 00000000         ; R0 VETT
-    5 00000000         ; R1 dim
-    6 00000000         ; R2 flag
-    7 00000000         
-    8 00000000         
-    9 00000000         
-   10 00000000         avg_vett
+    4 00000000         ; 1) salva i registri come input nei nuovi registri, da 
+                       r4 in poi
+    5 00000000         ; 2) se devi caricare un vettore usa -->  LDR R6, [R0, R
+                       4, LSL #2] 
+    6 00000000         ;  R0 punta all'indirizzo base vettore
+    7 00000000         ;  R4 è l'indice del vettore, R6 dove salvi il valore
+    8 00000000         ;   LSL #2 shifta l'indirizzo base del vettore di 4 byte
+                       
+    9 00000000         ; 3) se devi verificare che un numero sia pari o dispari
+                        usa
+   10 00000000         ;  TST R4, #1
+   11 00000000         ;  MOVEQ R5, #1 --> è pari
+   12 00000000         ;   MOVNE R5, #0 --> dipari
+   13 00000000         ; 4) se devi salvare un valore a un puntatore utilizza S
+                       TRB R4, [R0]
+   14 00000000         ;  R0 è il registro di input in cui viene passato il pun
+                       tatore
+   15 00000000         ;   R4 è il valore che vuoi salvare
+   16 00000000         
+   17 00000000         ; R0 VETT
+   18 00000000         ; R1 dim
+   19 00000000         ; R2 flag
+   20 00000000         
+   21 00000000         
+   22 00000000         avg_vett
                                PROC
-   11 00000000 E92D 4DF0       STMFD            SP!,{R4-R8,R10-R11,LR} ;SALVO R
+   23 00000000 E92D 4DF0       STMFD            SP!,{R4-R8,R10-R11,LR} ;SALVO R
                                                             EGISTRI VOLATILI
-   12 00000004         
-   13 00000004 F04F 0800       MOV              R8, #0      ; INIZIALIZZA IL CO
-                                                            NTATORE DEI VALORI
-   14 00000008 460B            MOV              R3, R1      ; COPIA dim IN R3
-   15 0000000A 4604            MOV              R4, R0      ; COPIA IL PUNTATOR
-                                                            E AL VETTORE IN R4
-   16 0000000C F04F 0600       MOV              R6, #0      ; INIZIALIZZO R6 A 
-                                                            0 PER SALVARCI LA S
-                                                            OMMA
-   17 00000010 F04F 0700       MOV              R7, #0      ; PER CALCOLARE LA 
-                                                            MEDIA
-   18 00000014         
-   19 00000014 2B00    LOOP    CMP              R3, #0
-   20 00000016 D005            BEQ              AVERAGE
-   21 00000018         
-   22 00000018 F850 5024       LDR              r5, [r0, r4, LSL #2]
-   23 0000001C 442E            ADD              R6, R6, R5  ; SOMMO TUTTI I VAL
-                                                            ORI PER OTTENERE LA
-                                                             MEDIA
-   24 0000001E         
-   25 0000001E F1A3 0301       sub              r3, r3, #1
-   26 00000022 E7F7            B                LOOP
-   27 00000024         
-   28 00000024 FBB6 F7F3 
-                       AVERAGE UDIV             R7, R6, R3
-   29 00000028         
-   30 00000028 4604    P_2     MOV              R4, R0      ; COPIA IL PUNTATOR
-                                                            E AL VETTORE IN R4
-   31 0000002A 460B            MOV              R3, R1
-   32 0000002C         
-   33 0000002C 2B00    LOOP2   CMP              R3, #0
-   34 0000002E D00B            BEQ              SET_FLAG
-   35 00000030         
-   36 00000030 F850 5024       LDR              r5, [r0, r4, LSL #2]
-   37 00000034 42BD            CMP              R5, R7
-   38 00000036 DC02            BGT              IS_GREATER
-   39 00000038         
-   40 00000038 F1A3 0301       SUB              R3, R3, #1
-   41 0000003C E7EA            B                LOOP
-   42 0000003E         
-   43 0000003E F108 0801 
-                       IS_GREATER
-                               ADD              R8, R8, #1
-   44 00000042 F1A3 0301       SUB              R3, R3, #1
-   45 00000046 E7F1            B                LOOP2
-   46 00000048         
+   24 00000004         
+   25 00000004 F04F 0400       MOV              R4, #0      ; INDEX
+   26 00000008 F04F 0500       MOV              R5, #0      ; SOMMA VALORI
+   27 0000000C         
+   28 0000000C 428C    LOOP    CMP              R4, R1
+   29 0000000E D005            BEQ              AVERAGE
+   30 00000010 F850 6024       LDR              R6, [R0, R4, LSL #2]
+   31 00000014 4435            ADD              R5, R5, R6
+   32 00000016         
+   33 00000016 F104 0401       ADD              R4, R4, #1
+   34 0000001A E7F7            B                LOOP
+   35 0000001C         
+   36 0000001C F04F 0700 
+                       AVERAGE MOV              R7, #0
+   37 00000020 FBB5 F7F1       UDIV             R7, R5, R1  ; R7 = R6/R1
+   38 00000024         
+   39 00000024 F04F 0400 
+                       CHECK   MOV              R4, #0
+   40 00000028 F04F 0800       MOV              R8, #0
+   41 0000002C         
+   42 0000002C 428C    LOOP2   CMP              R4, R1
+   43 0000002E D00B            BEQ              ODD_EVEN_CHECK
+   44 00000030 F850 6024       LDR              R6, [R0, R4, LSL #2]
+   45 00000034 42BE            CMP              R6, R7
+   46 00000036 DC02            BGT              IS_HIGHER
+   47 00000038         
+   48 00000038 F104 0401       ADD              R4, R4, #1
+   49 0000003C E7F6            B                LOOP2
 
 
 
 ARM Macro Assembler    Page 2 
 
 
-   47 00000048 F018 0F01 
-                       SET_FLAG
+   50 0000003E         
+   51 0000003E F108 0801 
+                       IS_HIGHER
+                               ADD              R8, R8, #1
+   52 00000042 F104 0401       ADD              R4, R4, #1
+   53 00000046 E7F1            B                LOOP2
+   54 00000048         
+   55 00000048 F018 0F01 
+                       ODD_EVEN_CHECK
                                TST              R8, #1
-   48 0000004C BF0C F04F 
-              0A01             MOVEQ            R10, #1     ; se Z=1 => (R7 & 1
-                                                            )==0 => count e' pa
-                                                            ri => R8=1
-   49 00000052 F04F 0A00       MOVNE            R10, #0     ; se Z=0 => count e
-                                                            ' dispari => R8=0
-   50 00000056         
-   51 00000056         ; Memorizza R8 (1 o 0) in *flag come char
-   52 00000056 F882 A000       STRB             R10, [R2]
-   53 0000005A         
-   54 0000005A         ; Ritorna count in R0
-   55 0000005A 4640            MOV              R0, R8
-   56 0000005C E7FF            B                FINE
-   57 0000005E         
-   58 0000005E         FINE                                 ;MOV R0, R2
-   59 0000005E E8BD 8DF0       LDMFD            SP!,{R4-R8,R10-R11,PC} ;RIPRIST
+   56 0000004C BF0C F04F 
+              0A01             MOVEQ            R10, #1
+   57 00000052 F04F 0A00       MOVNE            R10, #0
+   58 00000056 F882 A000       STRB             R10, [R2]
+   59 0000005A         
+   60 0000005A 4640    FINE    MOV              R0, R8
+   61 0000005C E8BD 8DF0       LDMFD            SP!,{R4-R8,R10-R11,PC} ;RIPRIST
                                                             INO REGISTRI VOLATI
                                                             LI
-   60 00000062                 ENDP
-   61 00000062                 END
+   62 00000060                 ENDP
+   63 00000060                 END
 Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
 nd=.\objects\asm.d -o.\objects\asm.o -I.\Source\button_EXINT -I.\Source\CMSIS_c
 ore -I.\Source\joystick -I.\Source\led -I.\Source\RIT -I.\Source\timer -I.\Sour
@@ -105,63 +103,63 @@ TA 1" --predefine="_RTE_ SETA 1" --list=.\listings\asm.lst asm.s
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 Relocatable symbols
 
-AVERAGE 00000024
+AVERAGE 0000001C
 
 Symbol: AVERAGE
    Definitions
-      At line 28 in file asm.s
+      At line 36 in file asm.s
    Uses
-      At line 20 in file asm.s
+      At line 29 in file asm.s
 Comment: AVERAGE used once
-FINE 0000005E
+CHECK 00000024
+
+Symbol: CHECK
+   Definitions
+      At line 39 in file asm.s
+   Uses
+      None
+Comment: CHECK unused
+FINE 0000005A
 
 Symbol: FINE
    Definitions
-      At line 58 in file asm.s
+      At line 60 in file asm.s
    Uses
-      At line 56 in file asm.s
-Comment: FINE used once
-IS_GREATER 0000003E
+      None
+Comment: FINE unused
+IS_HIGHER 0000003E
 
-Symbol: IS_GREATER
+Symbol: IS_HIGHER
    Definitions
-      At line 43 in file asm.s
+      At line 51 in file asm.s
    Uses
-      At line 38 in file asm.s
-Comment: IS_GREATER used once
-LOOP 00000014
+      At line 46 in file asm.s
+Comment: IS_HIGHER used once
+LOOP 0000000C
 
 Symbol: LOOP
    Definitions
-      At line 19 in file asm.s
+      At line 28 in file asm.s
    Uses
-      At line 26 in file asm.s
-      At line 41 in file asm.s
-
+      At line 34 in file asm.s
+Comment: LOOP used once
 LOOP2 0000002C
 
 Symbol: LOOP2
    Definitions
-      At line 33 in file asm.s
+      At line 42 in file asm.s
    Uses
-      At line 45 in file asm.s
-Comment: LOOP2 used once
-P_2 00000028
+      At line 49 in file asm.s
+      At line 53 in file asm.s
 
-Symbol: P_2
-   Definitions
-      At line 30 in file asm.s
-   Uses
-      None
-Comment: P_2 unused
-SET_FLAG 00000048
+ODD_EVEN_CHECK 00000048
 
-Symbol: SET_FLAG
+Symbol: ODD_EVEN_CHECK
    Definitions
-      At line 47 in file asm.s
+      At line 55 in file asm.s
    Uses
-      At line 34 in file asm.s
-Comment: SET_FLAG used once
+      At line 43 in file asm.s
+Comment: ODD_EVEN_CHECK used once
 asm 00000000
 
 
@@ -180,7 +178,7 @@ avg_vett 00000000
 
 Symbol: avg_vett
    Definitions
-      At line 10 in file asm.s
+      At line 22 in file asm.s
    Uses
       At line 2 in file asm.s
 Comment: avg_vett used once

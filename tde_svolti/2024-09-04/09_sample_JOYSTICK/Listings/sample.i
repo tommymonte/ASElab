@@ -2144,10 +2144,11 @@ int main (void) {
  joystick_init();
  init_RIT(0x625000*2);
  enable_RIT();
- init_timer(0, 625000); // 25 ms
- init_timer(1, 25000000*2); // 0.5 Hz per i led al punto 6
- init_timer(3, 25000000); // 1 sec
-
+ init_timer(0, 2500000); // 25 ms
+ init_timer(1, 2500000); // 0.5 Hz per i led al punto 6
+ init_timer(2, 5000000); // 1 sec
+ enable_timer(1);
+ enable_timer(2);
  ((LPC_SC_TypeDef *) ((0x40080000UL) + 0x7C000) )->PCON |= 0x1;
  ((LPC_SC_TypeDef *) ((0x40080000UL) + 0x7C000) )->PCON &= ~(0x2);
 

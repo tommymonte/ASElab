@@ -2283,60 +2283,47 @@ void LED_Off (unsigned int num);
 void LED_Out(unsigned int value);
 # 17 "Source/timer/IRQ_timer.c" 2
 # 27 "Source/timer/IRQ_timer.c"
-extern uint8_t variazioni;
-extern tempi_variazioni[5];
-uint32_t tempo_totale;
-extern char dutycycle;
+int count_tim0 = 0;
 void TIMER0_IRQHandler (void)
 {
- // campiono il joystick
- if((((LPC_GPIO_TypeDef *) ((0x2009C000UL) + 0x00020) )->FIOPIN & (1<<29))){
-   tempi_variazioni[variazioni] = ((LPC_TIM_TypeDef *) ((0x40080000UL) + 0x14000) )->TC; // salvo il tempo a cui arriva l'interrupt sul joystick
-   variazioni++;
-   if(variazioni >= 5){ // se ho fatto più di 5 transizioni disabilito i timer e salvo il tempo totale
-    disable_timer(0);
-    disable_timer(3);
-    tempo_totale = ((LPC_TIM_TypeDef *) ((0x40080000UL) + 0x14000) )->TC;
-    reset_timer(2);
-    reset_timer(3);
+ if(count_tim0<7) {
+  LED_On(6);
+  }
+ else {
+  LED_Off(6);
  }
-}
+
+ if (count_tim0 == 14) {
+  count_tim0 = 0;
+ }
+
+ count_tim0++;
   ((LPC_TIM_TypeDef *) ((0x40000000UL) + 0x04000) )->IR = 1;
   return;
 }
-# 61 "Source/timer/IRQ_timer.c"
-char switch_led = 0;
+# 57 "Source/timer/IRQ_timer.c"
+int count_tim1 = 0;
+int count_tim2 = 0;
+extern uint32_t VAR;
 
 void TIMER1_IRQHandler (void)
 {
- if (switch_led) {
-  // num variazioni
-  LED_Off(255);
-  LED_On(7);
-  LED_Out(dutycycle);
-  switch_led = 1;
- }
- else {
-  switch_led = 0;
-  LED_Off(255);
-  LED_Out(variazioni);
+ count_tim1++;
+ if(count_tim1 == 17) {
+  VAR = ((LPC_TIM_TypeDef *) ((0x40080000UL) + 0x10000) )->TC;
+  count_tim1 = 0;
  }
   ((LPC_TIM_TypeDef *) ((0x40000000UL) + 0x08000) )->IR = 1;
   return;
 }
 
-extern not_acquisizione;
-extern acquisizione;
-
-void TIMER3_IRQHandler (void)
+void TIMER2_IRQHandler (void)
 {
- enable_timer(0);
- tempo_totale = 25000000;
-
- // alla fine riporto il sistema in modalità monitor
- not_acquisizione = 1;
- acquisizione = 0;
-
-  ((LPC_TIM_TypeDef *) ((0x40080000UL) + 0x14000) )->IR = 1;
+ count_tim2++;
+ if(count_tim2 == 146) {
+  disable_timer(1);
+  disable_timer(2);
+ }
+  ((LPC_TIM_TypeDef *) ((0x40080000UL) + 0x10000) )->IR = 1;
   return;
 }
