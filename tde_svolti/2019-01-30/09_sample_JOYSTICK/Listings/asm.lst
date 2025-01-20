@@ -1,0 +1,121 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             asm, CODE, READONLY
+    2 00000000                 EXPORT           divisible
+    3 00000000         
+    4 00000000         ;   R0 = e1 (dividendo)
+    5 00000000         ;   R1 = e2 (divisore)
+    6 00000000         ;
+    7 00000000         ;   Ritorno in R0 = 0 se e1 è divisibile da e2,
+    8 00000000         ;               altrimenti e1 % e2
+    9 00000000         
+   10 00000000         divisible
+                               PROC
+   11 00000000 E92D 4DF0       STMFD            SP!, {R4-R8, R10-R11, LR} ; Sal
+                                                            va registri volatil
+                                                            i
+   12 00000004         
+   13 00000004 4602            MOV              R2, R0      ; Copio e1 in R2
+   14 00000006 460B            MOV              R3, R1      ; Copio e2 in R3
+   15 00000008         
+   16 00000008         START
+   17 00000008         ; Calcoliamo il quoziente = e1 / e2
+   18 00000008 FBB2 F4F3       UDIV             R4, R2, R3  ; R4 = R2 / R3 (quo
+                                                            ziente)
+   19 0000000C         ; Calcoliamo quoziente * e2
+   20 0000000C FB04 F503       MUL              R5, R4, R3  ; R5 = R4 * R3
+   21 00000010         ; Resto = e1 - (quoziente*e2)
+   22 00000010 EBA2 0605       SUB              R6, R2, R5  ; R6 = R2 - R5 (res
+                                                            to)
+   23 00000014         
+   24 00000014 2E00            CMP              R6, #0
+   25 00000016 D000            BEQ              IS_DIVISIBLE ; Se resto=0 => di
+                                                            visibile
+   26 00000018 D102            BNE              NOT_DIVISIBLE ; Altrimenti => n
+                                                            on divisibile
+   27 0000001A         
+   28 0000001A         IS_DIVISIBLE
+   29 0000001A F04F 0000       MOV              R0, #0      ; e1 è divisibile ?
+                                                             ritorniamo 0
+   30 0000001E E001            B                FINE
+   31 00000020         
+   32 00000020         NOT_DIVISIBLE
+   33 00000020 4630            MOV              R0, R6      ; e1 non è divisibi
+                                                            le ? ritorniamo il 
+                                                            resto
+   34 00000022 E7FF            B                FINE
+   35 00000024         
+   36 00000024         FINE
+   37 00000024 E8BD 8DF0       LDMFD            SP!, {R4-R8, R10-R11, PC} ; Rip
+                                                            ristina registri e 
+                                                            torna
+   38 00000028                 ENDP
+   39 00000028                 END
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
+nd=.\objects\asm.d -o.\objects\asm.o -I.\Source\button_EXINT -I.\Source\CMSIS_c
+ore -I.\Source\joystick -I.\Source\led -I.\Source\RIT -I.\Source\timer -I.\Sour
+ce -I.\RTE\_SW_Debug -IC:\Users\HP\AppData\Local\Arm\Packs\ARM\CMSIS\6.1.0\CMSI
+S\Core\Include -IC:\Users\HP\AppData\Local\Arm\Packs\Keil\LPC1700_DFP\2.7.2\Dev
+ice\Include --predefine="__UVISION_VERSION SETA 541" --predefine="LPC175x_6x SE
+TA 1" --predefine="_RTE_ SETA 1" --list=.\listings\asm.lst asm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+FINE 00000024
+
+Symbol: FINE
+   Definitions
+      At line 36 in file asm.s
+   Uses
+      At line 30 in file asm.s
+      At line 34 in file asm.s
+
+IS_DIVISIBLE 0000001A
+
+Symbol: IS_DIVISIBLE
+   Definitions
+      At line 28 in file asm.s
+   Uses
+      At line 25 in file asm.s
+Comment: IS_DIVISIBLE used once
+NOT_DIVISIBLE 00000020
+
+Symbol: NOT_DIVISIBLE
+   Definitions
+      At line 32 in file asm.s
+   Uses
+      At line 26 in file asm.s
+Comment: NOT_DIVISIBLE used once
+START 00000008
+
+Symbol: START
+   Definitions
+      At line 16 in file asm.s
+   Uses
+      None
+Comment: START unused
+asm 00000000
+
+Symbol: asm
+   Definitions
+      At line 1 in file asm.s
+   Uses
+      None
+Comment: asm unused
+divisible 00000000
+
+Symbol: divisible
+   Definitions
+      At line 10 in file asm.s
+   Uses
+      At line 2 in file asm.s
+Comment: divisible used once
+6 symbols
+339 symbols in table

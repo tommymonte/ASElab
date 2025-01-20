@@ -1,0 +1,263 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             asm, CODE, READONLY
+    2 00000000                 EXPORT           duty_cycle
+    3 00000000         
+    4 00000000         
+    5 00000000         ; Prototipo: unsigned char duty_cycle(unsigned char valo
+                       re_iniziale, unsigned int tempo_totale,
+    6 00000000         ;                                    unsigned int tempi_
+                       variazioni[], unsigned char numero_variazioni);
+    7 00000000         
+    8 00000000         ; Input:
+    9 00000000         ; R0 = valore_iniziale (1 byte)
+   10 00000000         ; R1 = tempo_totale (4 byte)
+   11 00000000         ; R2 = puntatore al vettore tempi_variazioni (4 byte)
+   12 00000000         ; R3 = numero_variazioni (1 byte)
+   13 00000000         
+   14 00000000         ; Output:
+   15 00000000         ; R0 = duty-cycle (0-100)
+   16 00000000         
+   17 00000000         
+   18 00000000         duty_cycle
+                               PROC
+   19 00000000         
+   20 00000000 E92D 4DF0       STMFD            SP!,{R4-R8,R10-R11,LR} ;SALVO R
+                                                            EGISTRI VOLATILI
+   21 00000004         
+   22 00000004         ;R0     VALORE INIZIALE
+   23 00000004         ;R1  TEMPO TOTALE
+   24 00000004         ;R2  TEMPI_VARIAZIONI[]
+   25 00000004         ;R3  NUMERO VARIAZIONI
+   26 00000004         
+   27 00000004         ;R6  NEXT
+   28 00000004         ;R5  BEFORE
+   29 00000004         
+   30 00000004 F04F 0700       MOV              R7, #0      ;TOTAL TIME UP
+   31 00000008         
+   32 00000008 2B00            CMP              R3, #0
+   33 0000000A D104            BNE              START
+   34 0000000C 2800            CMP              R0, #0
+   35 0000000E D061            BEQ              FINE
+   36 00000010 BF18 2064       MOVNE            R0, #100
+   37 00000014 D15E            BNE              FINE
+   38 00000016         
+   39 00000016 461C    START   MOV              R4, R3      ;SALVO NUMERO VARIA
+                                                            ZIONI
+   40 00000018 B340            CBZ              R0, LOW
+   41 0000001A         
+   42 0000001A F014 0F01 
+                       HIGH    TST              R4, #1
+   43 0000001E F1A4 0401       SUB              R4, #1      ;NUMERO VARIAZIONI 
+                                                            = INDICE MASSIMO VE
+                                                            TTORE
+   44 00000022 D012            BEQ              PARI_H
+   45 00000024 D1FF            BNE              DISPARI_H
+   46 00000026         
+   47 00000026 2C00    DISPARI_H
+                               CMP              R4, #0
+   48 00000028 BF04 F852 
+              6024             LDREQ            R6, [R2,R4, LSL #2]
+   49 0000002E 19BF            ADDEQ            R7, R7, R6
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   50 00000030 D04A            BEQ              CALCOLA
+   51 00000032 F852 6024       LDR              R6, [R2,R4, LSL #2]
+   52 00000036 F1A4 0401       SUB              R4, #1
+   53 0000003A F852 5024       LDR              R5, [R2,R4, LSL #2]
+   54 0000003E EBA6 0605       SUB              R6, R6, R5
+   55 00000042 4437            ADD              R7, R7, R6
+   56 00000044 F1A4 0401       SUB              R4, #1
+   57 00000048 E7ED            B                DISPARI_H
+   58 0000004A         
+   59 0000004A F1B4 3FFF 
+                       PARI_H  CMP              R4, #-1
+   60 0000004E BF08 1BCF       SUBEQ            R7, R1, R7
+   61 00000052 D039            BEQ              CALCOLA
+   62 00000054 F852 6024       LDR              R6, [R2,R4, LSL #2]
+   63 00000058 F1A4 0401       SUB              R4, #1
+   64 0000005C F852 5024       LDR              R5, [R2,R4, LSL #2]
+   65 00000060 EBA6 0605       SUB              R6, R6, R5
+   66 00000064 4437            ADD              R7, R7, R6
+   67 00000066 F1A4 0401       SUB              R4, #1
+   68 0000006A E7EE            B                PARI_H
+   69 0000006C         
+   70 0000006C F014 0F01 
+                       LOW     TST              R4, #1
+   71 00000070 F1A4 0401       SUB              R4, #1      ;NUMERO VARIAZIONI 
+                                                            = INDICE MASSIMO VE
+                                                            TTORE
+   72 00000074 D019            BEQ              PARI_L
+   73 00000076 BF18 3C01       SUBNE            R4, #1
+   74 0000007A D1FF            BNE              DISPARI_L
+   75 0000007C         
+   76 0000007C F1B4 3FFF 
+                       DISPARI_L
+                               CMP              R4, #-1
+   77 00000080 BF01 461C       MOVEQ            R4, R3
+   78 00000084 1E64            SUBEQ            R4, R4, #1
+   79 00000086 F852 5024       LDREQ            R5, [R2,R4, LSL #2]
+   80 0000008A 1B4E            SUBEQ            R6, R1, R5
+   81 0000008C BF08 19BF       ADDEQ            R7, R7, R6
+   82 00000090 D01A            BEQ              CALCOLA
+   83 00000092 F852 6024       LDR              R6, [R2,R4, LSL #2]
+   84 00000096 F1A4 0401       SUB              R4, #1
+   85 0000009A F852 5024       LDR              R5, [R2,R4, LSL #2]
+   86 0000009E EBA6 0605       SUB              R6, R6, R5
+   87 000000A2 4437            ADD              R7, R7, R6
+   88 000000A4 F1A4 0401       SUB              R4, #1
+   89 000000A8 E7E8            B                DISPARI_L
+   90 000000AA         
+   91 000000AA F1B4 3FFF 
+                       PARI_L  CMP              R4, #-1
+   92 000000AE D00B            BEQ              CALCOLA
+   93 000000B0 F852 6024       LDR              R6, [R2,R4, LSL #2]
+   94 000000B4 F1A4 0401       SUB              R4, #1
+   95 000000B8 F852 5024       LDR              R5, [R2,R4, LSL #2]
+   96 000000BC EBA6 0605       SUB              R6, R6, R5
+   97 000000C0 4437            ADD              R7, R7, R6
+   98 000000C2 F1A4 0401       SUB              R4, #1
+   99 000000C6 E7F0            B                PARI_L
+  100 000000C8         
+  101 000000C8 F04F 0664 
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+                       CALCOLA MOV              R6, #100
+  102 000000CC FB07 F706       MUL              R7, R7, R6
+  103 000000D0 FBB7 F0F1       UDIV             R0, R7, R1
+  104 000000D4         
+  105 000000D4 E8BD 8DF0 
+                       FINE    LDMFD            SP!,{R4-R8,R10-R11,PC} ;RIPRIST
+                                                            INO REGISTRI VOLATI
+                                                            LI
+  106 000000D8                 ENDP
+  107 000000D8                 END
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
+nd=.\objects\asm.d -o.\objects\asm.o -I.\Source\button_EXINT -I.\Source\CMSIS_c
+ore -I.\Source\joystick -I.\Source\led -I.\Source\RIT -I.\Source\timer -I.\Sour
+ce -I.\RTE\_SW_Debug -IC:\Users\HP\AppData\Local\Arm\Packs\ARM\CMSIS\6.1.0\CMSI
+S\Core\Include -IC:\Users\HP\AppData\Local\Arm\Packs\Keil\LPC1700_DFP\2.7.2\Dev
+ice\Include --predefine="__UVISION_VERSION SETA 541" --predefine="LPC175x_6x SE
+TA 1" --predefine="_RTE_ SETA 1" --list=.\listings\asm.lst asm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+CALCOLA 000000C8
+
+Symbol: CALCOLA
+   Definitions
+      At line 101 in file asm.s
+   Uses
+      At line 50 in file asm.s
+      At line 61 in file asm.s
+      At line 82 in file asm.s
+      At line 92 in file asm.s
+
+DISPARI_H 00000026
+
+Symbol: DISPARI_H
+   Definitions
+      At line 47 in file asm.s
+   Uses
+      At line 45 in file asm.s
+      At line 57 in file asm.s
+
+DISPARI_L 0000007C
+
+Symbol: DISPARI_L
+   Definitions
+      At line 76 in file asm.s
+   Uses
+      At line 74 in file asm.s
+      At line 89 in file asm.s
+
+FINE 000000D4
+
+Symbol: FINE
+   Definitions
+      At line 105 in file asm.s
+   Uses
+      At line 35 in file asm.s
+      At line 37 in file asm.s
+
+HIGH 0000001A
+
+Symbol: HIGH
+   Definitions
+      At line 42 in file asm.s
+   Uses
+      None
+Comment: HIGH unused
+LOW 0000006C
+
+Symbol: LOW
+   Definitions
+      At line 70 in file asm.s
+   Uses
+      At line 40 in file asm.s
+Comment: LOW used once
+PARI_H 0000004A
+
+Symbol: PARI_H
+   Definitions
+      At line 59 in file asm.s
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+   Uses
+      At line 44 in file asm.s
+      At line 68 in file asm.s
+
+PARI_L 000000AA
+
+Symbol: PARI_L
+   Definitions
+      At line 91 in file asm.s
+   Uses
+      At line 72 in file asm.s
+      At line 99 in file asm.s
+
+START 00000016
+
+Symbol: START
+   Definitions
+      At line 39 in file asm.s
+   Uses
+      At line 33 in file asm.s
+Comment: START used once
+asm 00000000
+
+Symbol: asm
+   Definitions
+      At line 1 in file asm.s
+   Uses
+      None
+Comment: asm unused
+duty_cycle 00000000
+
+Symbol: duty_cycle
+   Definitions
+      At line 18 in file asm.s
+   Uses
+      At line 2 in file asm.s
+Comment: duty_cycle used once
+11 symbols
+344 symbols in table
