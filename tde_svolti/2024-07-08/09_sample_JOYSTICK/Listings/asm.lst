@@ -1,0 +1,172 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             asm, CODE, READONLY
+    2 00000000                 EXPORT           analisi_accuratezza
+    3 00000000         
+    4 00000000         ; 1) salva i registri come input nei nuovi registri, da 
+                       r4 in poi
+    5 00000000         ;  NB: se hai più di 4 input il 5 devi salvarlo così:
+    6 00000000         ;  MOV R12, SP  
+    7 00000000         ;  LDRB R4, [R12]  
+    8 00000000         
+    9 00000000         ; 2) se devi caricare un vettore con valori da 32 bit us
+                       a -->  LDR R6, [R0, R4, LSL #2] 
+   10 00000000         ;  - R0 punta all'indirizzo base vettore
+   11 00000000         ;  - R4 è l'indice del vettore, R6 dove salvi il valore
+   12 00000000         ;   - LSL #2 shifta l'indirizzo base del vettore di 4 by
+                       te
+   13 00000000         ;  se invece ha elementi da 8 bit, basta usare LDRB 
+   14 00000000         ;   LDRB R6, [R0, R4]
+   15 00000000         ; NB: devi poi incrementare R4 ovvero l'offset
+   16 00000000         
+   17 00000000         ; 3) se devi verificare che un numero sia pari o dispari
+                        usa
+   18 00000000         ;  TST R4, #1
+   19 00000000         ;  MOVEQ R5, #1 --> è pari
+   20 00000000         ;   MOVNE R5, #0 --> dipari
+   21 00000000         
+   22 00000000         ; 4) se devi salvare un valore a un puntatore utilizza S
+                       TRB R4, [R0]
+   23 00000000         ;  R0 è il registro di input in cui viene passato il pun
+                       tatore
+   24 00000000         ;   R4 è il valore che vuoi salvare
+   25 00000000         
+   26 00000000         ; 5) se voglio fare abs(-2) devo fare:
+   27 00000000         ;  check_abs CMP R0, #0
+   28 00000000         ;    BLT abs
+   29 00000000         ;   abs    RSB R0, R0, #0 --> rsb fa una reverse sub: 0 
+                       - (-2) = +2
+   30 00000000         ;     B check_abs
+   31 00000000         
+   32 00000000         ; R0 VETT
+   33 00000000         ; R1 VETT2
+   34 00000000         ; R2 N
+   35 00000000         ;  R3 RES
+   36 00000000         ;  LDRB R4, [R12]  ; boundary BOUNDARY è posizionato 16 
+                       byte sopra SP (dopo 4 parametri * 4 byte ciascuno) BOUND
+                       ARY
+   37 00000000         
+   38 00000000         analisi_accuratezza
+                               PROC
+   39 00000000 E92D 4DF0       STMFD            SP!,{R4-R8,R10-R11,LR} ;SALVO R
+                                                            EGISTRI VOLATILI
+   40 00000004 F04F 0400       MOV              R4, #0      ; INDEX
+   41 00000008 F04F 0700       MOV              R7, #0      ; RES
+   42 0000000C F04F 0800       MOV              R8, #0      ; SUM DI RES
+   43 00000010 F04F 0A00       MOV              R10, #0     ; AVG
+   44 00000014         
+   45 00000014         ; FINE VETT?
+   46 00000014 4294    LOOP    CMP              R4, R2
+   47 00000016 D00D            BEQ              AVG
+   48 00000018 5D05            LDRB             R5, [R0, R4]
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   49 0000001A 5D0E            LDRB             R6, [R1, R4]
+   50 0000001C EBA6 0705       SUB              R7, R6, R5  ; CALCOLO RES
+   51 00000020         
+   52 00000020 2F00            CMP              R7, #0
+   53 00000022 DB00            BLT              ABS         ; SE è NEGATIVO CAL
+                                                            COLO IL VAL ASS
+   54 00000024         
+   55 00000024 E001            B                STORE_RES
+   56 00000026         
+   57 00000026 F1C7 0700 
+                       ABS     RSB              R7, R7, #0
+   58 0000002A         
+   59 0000002A 44B8    STORE_RES
+                               ADD              R8, R8, R7  ; AGGIORNO LA SOMMA
+                                                             DEI RES
+   60 0000002C 551F            STRB             R7, [R3, R4] ; STORE DI RES 
+   61 0000002E F104 0401       ADD              R4, R4, #1  ; INCREMENTO INDEX
+   62 00000032 E7EF            B                LOOP
+   63 00000034         
+   64 00000034 FBB8 FAF2 
+                       AVG     UDIV             R10, R8, R2 ; CALCOLO LA MEDIA
+   65 00000038 4650            MOV              R0, R10     ; SALVO IN R0 LA ME
+                                                            DIA COME OUTP
+   66 0000003A         
+   67 0000003A E8BD 8DF0 
+                       FINE    LDMFD            SP!,{R4-R8,R10-R11,PC} ;RIPRIST
+                                                            INO REGISTRI VOLATI
+                                                            LI
+   68 0000003E                 ENDP
+   69 0000003E                 END
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
+nd=.\objects\asm.d -o.\objects\asm.o -I.\Source\button_EXINT -I.\Source\CMSIS_c
+ore -I.\Source\joystick -I.\Source\led -I.\Source\RIT -I.\Source\timer -I.\Sour
+ce -I.\RTE\_SW_Debug -IC:\Users\HP\AppData\Local\Arm\Packs\ARM\CMSIS\6.1.0\CMSI
+S\Core\Include -IC:\Users\HP\AppData\Local\Arm\Packs\Keil\LPC1700_DFP\2.7.2\Dev
+ice\Include --predefine="__UVISION_VERSION SETA 541" --predefine="LPC175x_6x SE
+TA 1" --predefine="_RTE_ SETA 1" --list=.\listings\asm.lst asm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+ABS 00000026
+
+Symbol: ABS
+   Definitions
+      At line 57 in file asm.s
+   Uses
+      At line 53 in file asm.s
+Comment: ABS used once
+AVG 00000034
+
+Symbol: AVG
+   Definitions
+      At line 64 in file asm.s
+   Uses
+      At line 47 in file asm.s
+Comment: AVG used once
+FINE 0000003A
+
+Symbol: FINE
+   Definitions
+      At line 67 in file asm.s
+   Uses
+      None
+Comment: FINE unused
+LOOP 00000014
+
+Symbol: LOOP
+   Definitions
+      At line 46 in file asm.s
+   Uses
+      At line 62 in file asm.s
+Comment: LOOP used once
+STORE_RES 0000002A
+
+Symbol: STORE_RES
+   Definitions
+      At line 59 in file asm.s
+   Uses
+      At line 55 in file asm.s
+Comment: STORE_RES used once
+analisi_accuratezza 00000000
+
+Symbol: analisi_accuratezza
+   Definitions
+      At line 38 in file asm.s
+   Uses
+      At line 2 in file asm.s
+Comment: analisi_accuratezza used once
+asm 00000000
+
+Symbol: asm
+   Definitions
+      At line 1 in file asm.s
+   Uses
+      None
+Comment: asm unused
+7 symbols
+340 symbols in table

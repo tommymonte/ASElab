@@ -1,0 +1,182 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             asm, CODE, READONLY
+    2 00000000                 EXPORT           contatore_inrange
+    3 00000000         
+    4 00000000         ; 1) salva i registri come input nei nuovi registri, da 
+                       r4 in poi
+    5 00000000         ;  NB: se hai più di 4 input il 5 devi salvarlo così:
+    6 00000000         ;  MOV R12, SP  
+    7 00000000         ;  LDRB R4, [R12]  
+    8 00000000         
+    9 00000000         ; 2) se devi caricare un vettore con valori da 32 bit us
+                       a -->  LDR R6, [R0, R4, LSL #2] 
+   10 00000000         ;  - R0 punta all'indirizzo base vettore
+   11 00000000         ;  - R4 è l'indice del vettore, R6 dove salvi il valore
+   12 00000000         ;   - LSL #2 shifta l'indirizzo base del vettore di 4 by
+                       te
+   13 00000000         ;  se invece ha elementi da 8 bit, basta usare LDRB
+   14 00000000         ;   LDRB R6, [R0, R4]
+   15 00000000         ; NB: devi poi incrementare R4 ovvero l'offset
+   16 00000000         
+   17 00000000         ; 3) se devi verificare che un numero sia pari o dispari
+                        usa
+   18 00000000         ;  TST R4, #1
+   19 00000000         ;  MOVEQ R5, #1 --> è pari
+   20 00000000         ;   MOVNE R5, #0 --> dipari
+   21 00000000         
+   22 00000000         ; 4) se devi salvare un valore a un puntatore utilizza S
+                       TRB R4, [R0]
+   23 00000000         ;  R0 è il registro di input in cui viene passato il pun
+                       tatore
+   24 00000000         ;   R4 è il valore che vuoi salvare
+   25 00000000         
+   26 00000000         ; 5) se voglio fare abs(-2) devo fare:
+   27 00000000         ;  check_abs CMP R0, #0
+   28 00000000         ;    BLT abs
+   29 00000000         ;   abs    RSB R0, R0, #0 --> rsb fa una reverse sub: 0 
+                       - (-2) = +2
+   30 00000000         ;     B check_abs
+   31 00000000         
+   32 00000000         
+   33 00000000         ; R0 VETT
+   34 00000000         ; R1 N elementi
+   35 00000000         
+   36 00000000         
+   37 00000000         contatore_inrange
+                               PROC
+   38 00000000 E92D 4DF0       STMFD            SP!,{R4-R8,R10-R11,LR} ;SALVO R
+                                                            EGISTRI VOLATILI
+   39 00000004 F04F 0400       MOV              R4, #0      ; index
+   40 00000008 F04F 0800       MOV              R8, #0      ; RESULT
+   41 0000000C         
+   42 0000000C F850 6024 
+                       SAVE_FIRST_LAST
+                               LDR              R6, [R0, R4, LSL #2] ; MI SALVO
+                                                             IL PRIMO VAL
+   43 00000010 460D            MOV              R5, R1      ;     ; SALVO N
+   44 00000012 F1A5 0501       SUB              R5, R5, #1  ; SALVO N-1 
+   45 00000016 F850 7025       LDR              R7, [R0, R5, LSL #2] ; SALVO L'
+                                                            ULTIMO VAL
+   46 0000001A F04F 0401       MOV              R4, #1      ; RIPRISTINO R4 CON
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+                                                             1 E PARTO
+   47 0000001E 42BE            CMP              R6, R7
+   48 00000020 DC00            BGT              INVERT
+   49 00000022 DB02            BLT              LOOP
+   50 00000024         
+   51 00000024         ;TMP = R6
+   52 00000024         ;R6 = R7
+   53 00000024         ;R7 = TMP
+   54 00000024 46B2    INVERT  MOV              R10, R6
+   55 00000026 463E            MOV              R6, R7
+   56 00000028 4657            MOV              R7, R10
+   57 0000002A         
+   58 0000002A 42AC    LOOP    CMP              R4, R5      ; SCARTO L'ULTIMO V
+                                                            ALORE DAL LOOP
+   59 0000002C D00A            BEQ              FINE
+   60 0000002E F850 A024       LDR              R10, [R0, R4, LSL #2]
+   61 00000032 45B2            CMP              R10, R6
+   62 00000034 DD03            BLE              SKIP
+   63 00000036 45BA            CMP              R10, R7
+   64 00000038 DA01            BGE              SKIP
+   65 0000003A F108 0801       ADD              R8, R8, #1
+   66 0000003E         
+   67 0000003E F104 0401 
+                       SKIP    ADD              R4, R4, #1
+   68 00000042 E7F2            B                LOOP
+   69 00000044         
+   70 00000044 4640    FINE    MOV              R0, R8
+   71 00000046 E8BD 8DF0       LDMFD            SP!,{R4-R8,R10-R11,PC} ;RIPRIST
+                                                            INO REGISTRI VOLATI
+                                                            LI
+   72 0000004A                 ENDP
+   73 0000004A                 END
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
+nd=.\objects\asm.d -o.\objects\asm.o -I.\Source\button_EXINT -I.\Source\CMSIS_c
+ore -I.\Source\joystick -I.\Source\led -I.\Source\RIT -I.\Source\timer -I.\Sour
+ce -I.\RTE\_SW_Debug -IC:\Users\HP\AppData\Local\Arm\Packs\ARM\CMSIS\6.1.0\CMSI
+S\Core\Include -IC:\Users\HP\AppData\Local\Arm\Packs\Keil\LPC1700_DFP\2.7.2\Dev
+ice\Include --predefine="__UVISION_VERSION SETA 541" --predefine="LPC175x_6x SE
+TA 1" --predefine="_RTE_ SETA 1" --list=.\listings\asm.lst asm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+FINE 00000044
+
+Symbol: FINE
+   Definitions
+      At line 70 in file asm.s
+   Uses
+      At line 59 in file asm.s
+Comment: FINE used once
+INVERT 00000024
+
+Symbol: INVERT
+   Definitions
+      At line 54 in file asm.s
+   Uses
+      At line 48 in file asm.s
+Comment: INVERT used once
+LOOP 0000002A
+
+Symbol: LOOP
+   Definitions
+      At line 58 in file asm.s
+   Uses
+      At line 49 in file asm.s
+      At line 68 in file asm.s
+
+SAVE_FIRST_LAST 0000000C
+
+Symbol: SAVE_FIRST_LAST
+   Definitions
+      At line 42 in file asm.s
+   Uses
+      None
+Comment: SAVE_FIRST_LAST unused
+SKIP 0000003E
+
+Symbol: SKIP
+   Definitions
+      At line 67 in file asm.s
+   Uses
+      At line 62 in file asm.s
+      At line 64 in file asm.s
+
+asm 00000000
+
+Symbol: asm
+   Definitions
+      At line 1 in file asm.s
+   Uses
+      None
+Comment: asm unused
+contatore_inrange 00000000
+
+Symbol: contatore_inrange
+   Definitions
+      At line 37 in file asm.s
+   Uses
+      At line 2 in file asm.s
+Comment: contatore_inrange used once
+7 symbols
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+340 symbols in table

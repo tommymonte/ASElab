@@ -1,0 +1,170 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             asm, CODE, READONLY
+    2 00000000                 EXPORT           concat_sum
+    3 00000000         
+    4 00000000         ; 1) salva i registri come input nei nuovi registri, da 
+                       r4 in poi
+    5 00000000         ;  NB: se hai più di 4 input il 5 devi salvarlo così:
+    6 00000000         ;  MOV R12, SP  
+    7 00000000         ;  LDRB R4, [R12]  
+    8 00000000         
+    9 00000000         ; 2) se devi caricare un vettore con valori da 32 bit us
+                       a -->  LDR R6, [R0, R4, LSL #2] 
+   10 00000000         ;  - R0 punta all'indirizzo base vettore
+   11 00000000         ;  - R4 è l'indice del vettore, R6 dove salvi il valore
+   12 00000000         ;   - LSL #2 shifta l'indirizzo base del vettore di 4 by
+                       te
+   13 00000000         ;  se invece ha elementi da 8 bit, basta usare LDRB
+   14 00000000         ;   LDRB R6, [R0, R4]
+   15 00000000         ; NB: devi poi incrementare R4 ovvero l'offset
+   16 00000000         
+   17 00000000         ; 3) se devi verificare che un numero sia pari o dispari
+                        usa
+   18 00000000         ;  TST R4, #1
+   19 00000000         ;  MOVEQ R5, #1 --> è pari
+   20 00000000         ;   MOVNE R5, #0 --> dipari
+   21 00000000         
+   22 00000000         ; 4) se devi salvare un valore a un puntatore utilizza S
+                       TRB R4, [R0]
+   23 00000000         ;  R0 è il registro di input in cui viene passato il pun
+                       tatore
+   24 00000000         ;   R4 è il valore che vuoi salvare
+   25 00000000         
+   26 00000000         ; 5) se voglio fare abs(-2) devo fare:
+   27 00000000         ;  check_abs CMP R0, #0
+   28 00000000         ;    BLT abs
+   29 00000000         ;   abs    RSB R0, R0, #0 --> rsb fa una reverse sub: 0 
+                       - (-2) = +2
+   30 00000000         ;     B check_abs
+   31 00000000         
+   32 00000000         ; 6) **Istruzioni di Branch:**
+   33 00000000         ; - **`BVS`**: Salta se il flag V è impostato (overflow)
+                       .
+   34 00000000         ; - **`BVC`**: Salta se il flag V non è impostato (nessu
+                       n overflow).
+   35 00000000         ; - **`BCS`**: Salta se il flag C è impostato (carry).
+   36 00000000         ; - **`BCC`**: Salta se il flag C non è impostato (nessu
+                       n carry).
+   37 00000000         
+   38 00000000         ; R0 VETT
+   39 00000000         ; R1 dim
+   40 00000000         ; R2 * alarm 
+   41 00000000         
+   42 00000000         concat_sum
+                               PROC
+   43 00000000 E92D 4DF0       STMFD            SP!,{R4-R8,R10-R11,LR} ;SALVO R
+                                                            EGISTRI VOLATILI
+   44 00000004 F04F 0400       MOV              R4, #0
+   45 00000008 F04F 0800       MOV              R8, #0
+   46 0000000C F04F 0A00       MOV              R10, #0
+   47 00000010         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   48 00000010         ; cerchiamo la prima posizione libera
+   49 00000010 428C    CHECK_FIRST
+                               CMP              R4, R1
+   50 00000012 D014            BEQ              FINE
+   51 00000014         
+   52 00000014 5906            LDR              R6, [R0, R4, LSL #0]
+   53 00000016 F104 0401       ADD              R4, R4, #1  ; incremento index 
+                                                            count
+   54 0000001A         
+   55 0000001A F850 7014       LDR              R7, [R0, R4, LSL #1]
+   56 0000001E EA4F 4707       LSL              R7 , R7, #16
+   57 00000022 F104 0401       ADD              R4, R4, #1  ; incremento index 
+                                                            count
+   58 00000026         
+   59 00000026 EB07 0806       ADD              R8, R7, R6
+   60 0000002A EB1A 0A08       ADDS             R10, R10, R8
+   61 0000002E D600            BVS              CE_OVF
+   62 00000030 D702            BVC              NO_OVF
+   63 00000032         
+   64 00000032 F04F 3BFF 
+                       CE_OVF  MOV              R11, #-1
+   65 00000036 E7EB            B                CHECK_FIRST
+   66 00000038         
+   67 00000038 F04F 0B00 
+                       NO_OVF  MOV              R11, #0
+   68 0000003C E7E8            B                CHECK_FIRST
+   69 0000003E         
+   70 0000003E F882 B000 
+                       FINE    STRB             R11, [R2]
+   71 00000042 4650            MOV              R0, R10
+   72 00000044 E8BD 8DF0       LDMFD            SP!,{R4-R8,R10-R11,PC} ;RIPRIST
+                                                            INO REGISTRI VOLATI
+                                                            LI
+   73 00000048                 ENDP
+   74 00000048                 END
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
+nd=.\objects\asm.d -o.\objects\asm.o -I.\Source\button_EXINT -I.\Source\CMSIS_c
+ore -I.\Source\joystick -I.\Source\led -I.\Source\RIT -I.\Source\timer -I.\Sour
+ce -I.\RTE\_SW_Debug -IC:\Users\HP\AppData\Local\Arm\Packs\ARM\CMSIS\6.1.0\CMSI
+S\Core\Include -IC:\Users\HP\AppData\Local\Arm\Packs\Keil\LPC1700_DFP\2.7.2\Dev
+ice\Include --predefine="__UVISION_VERSION SETA 541" --predefine="LPC175x_6x SE
+TA 1" --predefine="_RTE_ SETA 1" --list=.\listings\asm.lst asm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+CE_OVF 00000032
+
+Symbol: CE_OVF
+   Definitions
+      At line 64 in file asm.s
+   Uses
+      At line 61 in file asm.s
+Comment: CE_OVF used once
+CHECK_FIRST 00000010
+
+Symbol: CHECK_FIRST
+   Definitions
+      At line 49 in file asm.s
+   Uses
+      At line 65 in file asm.s
+      At line 68 in file asm.s
+
+FINE 0000003E
+
+Symbol: FINE
+   Definitions
+      At line 70 in file asm.s
+   Uses
+      At line 50 in file asm.s
+Comment: FINE used once
+NO_OVF 00000038
+
+Symbol: NO_OVF
+   Definitions
+      At line 67 in file asm.s
+   Uses
+      At line 62 in file asm.s
+Comment: NO_OVF used once
+asm 00000000
+
+Symbol: asm
+   Definitions
+      At line 1 in file asm.s
+   Uses
+      None
+Comment: asm unused
+concat_sum 00000000
+
+Symbol: concat_sum
+   Definitions
+      At line 42 in file asm.s
+   Uses
+      At line 2 in file asm.s
+Comment: concat_sum used once
+6 symbols
+339 symbols in table

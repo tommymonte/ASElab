@@ -1827,7 +1827,7 @@ char flag;
 extern int avg_vett(uint32_t VETT[], uint32_t VAR, char* flag);
 char flag_output = 0;
 
-void decToBin(int val, uint8_t *buffer) {
+void decToBin(int val, char *buffer) {
 // Caso speciale: se val = 0, restituiamo "0"
     if (val == 0) {
         buffer[0] = '0';
@@ -2013,9 +2013,12 @@ void RIT_IRQHandler (void)
  char buffer[8] = {0};
 
  if(flag_output == 1){
+  flag_output = 0;
+  LED_Out(0x00);
   if(flag == 1) {
    enable_timer(0);
   } else if (flag == 0){
+   disable_timer(1);
    decToBin(result, buffer);
    printToLed(buffer);
   }

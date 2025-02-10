@@ -1,0 +1,128 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             asm, CODE, READONLY
+    2 00000000                 EXPORT           compare
+    3 00000000         
+    4 00000000         ; 1) salva i registri come input nei nuovi registri, da 
+                       r4 in poi
+    5 00000000         ;  NB: se hai più di 4 input il 5 devi salvarlo così:
+    6 00000000         ;  MOV R12, SP  
+    7 00000000         ;  LDRB R4, [R12]  
+    8 00000000         
+    9 00000000         ; 2) se devi caricare un vettore con valori da 32 bit us
+                       a -->  LDR R6, [R0, R4, LSL #2] 
+   10 00000000         ;  - R0 punta all'indirizzo base vettore
+   11 00000000         ;  - R4 è l'indice del vettore, R6 dove salvi il valore
+   12 00000000         ;   - LSL #2 shifta l'indirizzo base del vettore di 4 by
+                       te
+   13 00000000         ;  se invece ha elementi da 8 bit, basta usare LDRB
+   14 00000000         ;   LDRB R6, [R0, R4]
+   15 00000000         ; NB: devi poi incrementare R4 ovvero l'offset
+   16 00000000         
+   17 00000000         ; 3) se devi verificare che un numero sia pari o dispari
+                        usa
+   18 00000000         ;  TST R4, #1
+   19 00000000         ;  MOVEQ R5, #1 --> è pari
+   20 00000000         ;   MOVNE R5, #0 --> dipari
+   21 00000000         
+   22 00000000         ; 4) se devi salvare un valore a un puntatore utilizza S
+                       TRB R4, [R0]
+   23 00000000         ;  R0 è il registro di input in cui viene passato il pun
+                       tatore
+   24 00000000         ;   R4 è il valore che vuoi salvare
+   25 00000000         
+   26 00000000         ; 5) se voglio fare abs(-2) devo fare:
+   27 00000000         ;  check_abs CMP R0, #0
+   28 00000000         ;    BLT abs
+   29 00000000         ;   abs    RSB R0, R0, #0 --> rsb fa una reverse sub: 0 
+                       - (-2) = +2
+   30 00000000         ;     B check_abs
+   31 00000000         
+   32 00000000         
+   33 00000000         ; R0 VETT
+   34 00000000         ; R1 VETT2
+   35 00000000         ; R2 N
+   36 00000000         
+   37 00000000         
+   38 00000000         compare PROC
+   39 00000000 E92D 4DF0       STMFD            SP!,{R4-R8,R10-R11,LR} ;SALVO R
+                                                            EGISTRI VOLATILI
+   40 00000004 F04F 0400       MOV              R4, #0      ; index
+   41 00000008 F04F 0500       MOV              R5, #0      ; errori
+   42 0000000C         
+   43 0000000C         
+   44 0000000C 4294    LOOP    CMP              R4, R2
+   45 0000000E D007            BEQ              FINE
+   46 00000010 5D06            LDRB             R6, [R0, R4]
+   47 00000012 5D0F            LDRB             R7, [R1, R4]
+   48 00000014 42BE            CMP              R6, R7
+   49 00000016 BF18 1C6D       ADDNE            R5, R5, #1
+   50 0000001A         
+   51 0000001A F104 0401       ADD              R4, R4, #1  ; incremento index 
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+                                                            count
+   52 0000001E E7F5            B                LOOP
+   53 00000020         
+   54 00000020         
+   55 00000020 4628    FINE    MOV              R0, R5
+   56 00000022 E8BD 8DF0       LDMFD            SP!,{R4-R8,R10-R11,PC} ;RIPRIST
+                                                            INO REGISTRI VOLATI
+                                                            LI
+   57 00000026                 ENDP
+   58 00000026                 END
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M3 --depe
+nd=.\objects\asm.d -o.\objects\asm.o -I.\Source\button_EXINT -I.\Source\CMSIS_c
+ore -I.\Source\joystick -I.\Source\led -I.\Source\RIT -I.\Source\timer -I.\Sour
+ce -I.\RTE\_SW_Debug -IC:\Users\HP\AppData\Local\Arm\Packs\ARM\CMSIS\6.1.0\CMSI
+S\Core\Include -IC:\Users\HP\AppData\Local\Arm\Packs\Keil\LPC1700_DFP\2.7.2\Dev
+ice\Include --predefine="__UVISION_VERSION SETA 541" --predefine="LPC175x_6x SE
+TA 1" --predefine="_RTE_ SETA 1" --list=.\listings\asm.lst asm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+FINE 00000020
+
+Symbol: FINE
+   Definitions
+      At line 55 in file asm.s
+   Uses
+      At line 45 in file asm.s
+Comment: FINE used once
+LOOP 0000000C
+
+Symbol: LOOP
+   Definitions
+      At line 44 in file asm.s
+   Uses
+      At line 52 in file asm.s
+Comment: LOOP used once
+asm 00000000
+
+Symbol: asm
+   Definitions
+      At line 1 in file asm.s
+   Uses
+      None
+Comment: asm unused
+compare 00000000
+
+Symbol: compare
+   Definitions
+      At line 38 in file asm.s
+   Uses
+      At line 2 in file asm.s
+Comment: compare used once
+4 symbols
+337 symbols in table
